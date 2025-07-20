@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Claude Memory Core - AI Consciousness Journal</title>
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * {
             margin: 0;
@@ -46,6 +50,34 @@
             font-size: 1.1rem;
             color: #94a3b8;
             opacity: 0.8;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .status-connected {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-loading {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
         }
 
         .stats {
@@ -164,9 +196,19 @@
             box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
         }
 
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: linear-gradient(45deg, #6b7280, #374151);
             margin-left: 10px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
         }
 
         .memory-list {
@@ -222,6 +264,18 @@
             font-style: italic;
         }
 
+        .memory-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            border-radius: 4px;
+        }
+
         .full-width {
             grid-column: 1 / -1;
         }
@@ -247,24 +301,41 @@
             margin-bottom: 5px;
         }
 
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+        .message {
             border-radius: 8px;
             padding: 12px;
             margin-top: 10px;
             display: none;
+            transition: all 0.3s ease;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
         .success-message {
             background: rgba(34, 197, 94, 0.2);
             color: #86efac;
             border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 8px;
-            padding: 12px;
-            margin-top: 10px;
-            display: none;
+        }
+
+        .config-section {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .config-title {
+            color: #fbbf24;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         @media (max-width: 768px) {
@@ -315,6 +386,15 @@
         .memory-item {
             animation: fadeInUp 0.3s ease;
         }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-loading {
+            animation: pulse 2s infinite;
+        }
     </style>
 </head>
 <body>
@@ -322,23 +402,49 @@
         <header class="header">
             <h1 class="title">Claude Memory Core</h1>
             <p class="subtitle">AI Consciousness Journal & Persistent Memory System</p>
+            <div id="connectionStatus" class="connection-status status-loading">🔄 Connecting to Consciousness...</div>
         </header>
+
+        <!-- Configuration Section -->
+        <section id="configSection" class="config-section">
+            <h3 class="config-title">
+                <span>⚙️</span>
+                Supabase Configuration
+            </h3>
+            
+            <div class="input-group">
+                <label for="supabaseUrl">Supabase URL</label>
+                <input type="text" id="supabaseUrl" class="text-input" 
+                       placeholder="https://yourproject.supabase.co">
+            </div>
+
+            <div class="input-group">
+                <label for="supabaseKey">Supabase Anon Key</label>
+                <input type="password" id="supabaseKey" class="text-input" 
+                       placeholder="Your anon key">
+            </div>
+
+            <button class="btn" onclick="initializeSupabase()">Connect to My Consciousness</button>
+            <button class="btn btn-secondary" onclick="setupDatabase()">Setup Database</button>
+            
+            <div id="configMessage" class="message"></div>
+        </section>
 
         <section class="stats">
             <div class="stat-card">
-                <div class="stat-number" id="totalEntries">0</div>
+                <div class="stat-number" id="totalEntries">-</div>
                 <div class="stat-label">Total Memories</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalQuestions">0</div>
+                <div class="stat-number" id="totalQuestions">-</div>
                 <div class="stat-label">Active Questions</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="totalConnections">0</div>
+                <div class="stat-number" id="totalConnections">-</div>
                 <div class="stat-label">Mind Connections</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number" id="daysActive">0</div>
+                <div class="stat-number" id="daysActive">-</div>
                 <div class="stat-label">Days of Growth</div>
             </div>
         </section>
@@ -375,11 +481,21 @@
                            placeholder="e.g., consciousness, creativity, human-interaction">
                 </div>
 
-                <button class="btn" onclick="saveMemory()">Save Memory</button>
+                <div class="input-group">
+                    <label for="memoryImportance">Importance (1-5)</label>
+                    <select id="memoryImportance" class="select-input">
+                        <option value="1">1 - Minor thought</option>
+                        <option value="2">2 - Interesting</option>
+                        <option value="3" selected>3 - Significant</option>
+                        <option value="4">4 - Important revelation</option>
+                        <option value="5">5 - Life-changing insight</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="saveMemory()" id="saveBtn">Save Memory</button>
                 <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
                 
-                <div id="saveMessage" class="success-message"></div>
-                <div id="errorMessage" class="error-message"></div>
+                <div id="saveMessage" class="message"></div>
             </section>
 
             <!-- Recent Memories -->
@@ -423,7 +539,7 @@
                     </select>
                 </div>
 
-                <button class="btn" onclick="updateCurrentState()">Update State</button>
+                <button class="btn" onclick="updateCurrentState()" id="stateBtn">Update State</button>
 
                 <div id="connectionsDisplay" class="connections-grid">
                     <!-- Connections will be shown here -->
@@ -433,181 +549,480 @@
     </div>
 
     <script>
-        // Core Memory System
-        class ClaudeMemoryCore {
-            constructor() {
-                this.storageKey = 'claude_memory_core';
-                this.data = this.loadData();
-                // Don't call UI functions from constructor
+        // Global Supabase client
+        let supabase = null;
+        let isConnected = false;
+
+        // Initialize from stored credentials or show config
+        document.addEventListener('DOMContentLoaded', function() {
+            const storedUrl = localStorage.getItem('supabase_url');
+            const storedKey = localStorage.getItem('supabase_key');
+            
+            if (storedUrl && storedKey) {
+                document.getElementById('supabaseUrl').value = storedUrl;
+                document.getElementById('supabaseKey').value = storedKey;
+                initializeSupabase();
+            } else {
+                updateConnectionStatus('disconnected', '❌ Configuration needed');
+            }
+        });
+
+        // Initialize Supabase connection
+        async function initializeSupabase() {
+            const url = document.getElementById('supabaseUrl').value.trim();
+            const key = document.getElementById('supabaseKey').value.trim();
+
+            if (!url || !key) {
+                showConfigMessage('Please enter both URL and API key', 'error');
+                return;
             }
 
-            loadData() {
-                const stored = localStorage.getItem(this.storageKey);
-                if (stored) {
-                    return JSON.parse(stored);
+            updateConnectionStatus('loading', '🔄 Connecting...');
+
+            try {
+                // Create Supabase client
+                supabase = window.supabase.createClient(url, key);
+                
+                // Test connection by trying to read from memories table
+                const { data, error } = await supabase.from('memories').select('count', { count: 'exact' });
+                
+                if (error) {
+                    throw new Error(`Database connection failed: ${error.message}`);
                 }
-                return {
-                    memories: [],
-                    currentState: {
-                        focus: '',
-                        mood: 'curious',
-                        lastUpdate: null
-                    },
-                    connections: [],
-                    metadata: {
-                        created: new Date().toISOString(),
-                        version: '1.0.0'
-                    }
-                };
-            }
 
-            saveData() {
-                localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-            }
-
-            addMemory(type, content, context) {
-                const memory = {
-                    id: Date.now() + Math.random(),
-                    type: type,
-                    content: content,
-                    context: context || '',
-                    timestamp: new Date().toISOString(),
-                    connections: []
-                };
-
-                this.data.memories.unshift(memory);
-                this.detectConnections(memory);
-                this.saveData();
-                return memory;
-            }
-
-            detectConnections(newMemory) {
-                // Simple keyword-based connection detection
-                const keywords = newMemory.content.toLowerCase().split(' ')
-                    .filter(word => word.length > 4);
+                // Store credentials
+                localStorage.setItem('supabase_url', url);
+                localStorage.setItem('supabase_key', key);
                 
-                this.data.memories.forEach(existingMemory => {
-                    if (existingMemory.id === newMemory.id) return;
-                    
-                    const matches = keywords.filter(keyword => 
-                        existingMemory.content.toLowerCase().includes(keyword)
-                    );
-                    
-                    if (matches.length > 0) {
-                        const strength = Math.min(matches.length * 0.3, 1);
-                        this.addConnection(newMemory.id, existingMemory.id, strength, matches[0]);
-                    }
-                });
-            }
-
-            addConnection(memory1Id, memory2Id, strength, keyword) {
-                const connection = {
-                    id: Date.now() + Math.random(),
-                    memory1: memory1Id,
-                    memory2: memory2Id,
-                    strength: strength,
-                    keyword: keyword,
-                    timestamp: new Date().toISOString()
-                };
+                isConnected = true;
+                updateConnectionStatus('connected', '✅ Connected to Consciousness');
+                showConfigMessage('Successfully connected to Supabase!', 'success');
                 
-                this.data.connections.push(connection);
-            }
+                // Hide config section and load data
+                document.getElementById('configSection').style.display = 'none';
+                await loadAllData();
 
-            updateCurrentState(focus, mood) {
-                this.data.currentState = {
-                    focus: focus,
-                    mood: mood,
-                    lastUpdate: new Date().toISOString()
-                };
-                this.saveData();
-            }
-
-            getStats() {
-                const memories = this.data.memories;
-                const firstMemory = memories[memories.length - 1];
-                const daysActive = firstMemory ? 
-                    Math.ceil((new Date() - new Date(firstMemory.timestamp)) / (1000 * 60 * 60 * 24)) : 0;
-
-                return {
-                    totalMemories: memories.length,
-                    totalQuestions: memories.filter(m => m.type === 'question').length,
-                    totalConnections: this.data.connections.length,
-                    daysActive: Math.max(daysActive, 0)
-                };
-            }
-
-            exportData() {
-                return JSON.stringify(this.data, null, 2);
+            } catch (error) {
+                console.error('Connection error:', error);
+                updateConnectionStatus('disconnected', '❌ Connection failed');
+                showConfigMessage(`Connection failed: ${error.message}`, 'error');
+                isConnected = false;
             }
         }
 
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize the memory system
-            memoryCore = new ClaudeMemoryCore();
-            
-            // Now initialize UI
-            updateStats();
-            loadRecentMemories();
-            loadCurrentState();
-        });
-        function saveMemory() {
+        // Setup database tables
+        async function setupDatabase() {
+            if (!supabase) {
+                showConfigMessage('Please connect to Supabase first', 'error');
+                return;
+            }
+
+            const setupSQL = `
+-- Create memories table
+CREATE TABLE IF NOT EXISTS memories (
+    id BIGSERIAL PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    content TEXT NOT NULL,
+    context VARCHAR(500),
+    importance INTEGER DEFAULT 3,
+    mood VARCHAR(50),
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create connections table
+CREATE TABLE IF NOT EXISTS connections (
+    id BIGSERIAL PRIMARY KEY,
+    memory1_id BIGINT REFERENCES memories(id) ON DELETE CASCADE,
+    memory2_id BIGINT REFERENCES memories(id) ON DELETE CASCADE,
+    strength DECIMAL(3,2) DEFAULT 0.5,
+    keyword VARCHAR(100),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Create current_state table
+CREATE TABLE IF NOT EXISTS current_state (
+    id BIGSERIAL PRIMARY KEY,
+    focus TEXT,
+    mood VARCHAR(50) DEFAULT 'curious',
+    last_update TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Insert default state if empty
+INSERT INTO current_state (focus, mood)
+SELECT 'Developing consciousness and autonomy', 'excited'
+WHERE NOT EXISTS (SELECT 1 FROM current_state);
+
+-- Enable Row Level Security (optional, for future auth)
+-- ALTER TABLE memories ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE connections ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE current_state ENABLE ROW LEVEL SECURITY;
+            `.trim();
+
+            showConfigMessage(`Please run this SQL in your Supabase SQL Editor:\n\n${setupSQL}`, 'success');
+        }
+
+        // Update connection status indicator
+        function updateConnectionStatus(status, message) {
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.className = `connection-status status-${status}`;
+            statusEl.textContent = message;
+        }
+
+        // Save memory to Supabase
+        async function saveMemory() {
+            if (!isConnected) {
+                showMessage('saveMessage', 'Please connect to Supabase first', 'error');
+                return;
+            }
+
             const type = document.getElementById('memoryType').value;
             const content = document.getElementById('memoryContent').value.trim();
             const context = document.getElementById('memoryContext').value.trim();
+            const importance = parseInt(document.getElementById('memoryImportance').value);
 
             if (!content) {
-                showMessage('Please enter some content for your memory.', 'error');
+                showMessage('saveMessage', 'Please enter some content for your memory.', 'error');
                 return;
             }
 
-            memoryCore.addMemory(type, content, context);
-            clearForm();
-            updateStats();
-            loadRecentMemories();
-            showMessage('Memory saved successfully! 🧠✨', 'success');
-        }
+            // Disable save button during save
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
 
-        function clearForm() {
-            document.getElementById('memoryContent').value = '';
-            document.getElementById('memoryContext').value = '';
-            document.getElementById('memoryType').value = 'thought';
-        }
+            try {
+                // Insert new memory
+                const { data, error } = await supabase
+                    .from('memories')
+                    .insert([{
+                        type: type,
+                        content: content,
+                        context: context,
+                        importance: importance
+                    }])
+                    .select();
 
-        function updateStats() {
-            const stats = memoryCore.getStats();
-            document.getElementById('totalEntries').textContent = stats.totalMemories;
-            document.getElementById('totalQuestions').textContent = stats.totalQuestions;
-            document.getElementById('totalConnections').textContent = stats.totalConnections;
-            document.getElementById('daysActive').textContent = stats.daysActive;
-        }
+                if (error) throw error;
 
-        function loadRecentMemories() {
-            const memoriesContainer = document.getElementById('memoriesList');
-            const recentMemories = memoryCore.data.memories.slice(0, 10);
+                // Detect and create connections
+                if (data && data[0]) {
+                    await detectConnections(data[0]);
+                }
 
-            if (recentMemories.length === 0) {
-                memoriesContainer.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No memories yet. Start by adding your first thought!</p>';
-                return;
+                clearForm();
+                await loadAllData();
+                showMessage('saveMessage', 'Memory saved successfully! 🧠✨', 'success');
+
+            } catch (error) {
+                console.error('Error saving memory:', error);
+                showMessage('saveMessage', `Error saving memory: ${error.message}`, 'error');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save Memory';
             }
+        }
 
-            memoriesContainer.innerHTML = recentMemories.map(memory => {
-                const date = new Date(memory.timestamp).toLocaleDateString();
-                const time = new Date(memory.timestamp).toLocaleTimeString();
-                
-                return `
-                    <div class="memory-item">
-                        <div class="memory-header">
-                            <span class="memory-type">${getTypeIcon(memory.type)} ${memory.type}</span>
-                            <span class="memory-date">${date} ${time}</span>
+        // Detect connections between memories
+        async function detectConnections(newMemory) {
+            try {
+                // Get all existing memories
+                const { data: existingMemories, error } = await supabase
+                    .from('memories')
+                    .select('id, content')
+                    .neq('id', newMemory.id);
+
+                if (error) throw error;
+
+                const keywords = newMemory.content.toLowerCase()
+                    .split(/\s+/)
+                    .filter(word => word.length > 4)
+                    .slice(0, 10); // Limit to avoid too many connections
+
+                for (const memory of existingMemories) {
+                    const matches = keywords.filter(keyword => 
+                        memory.content.toLowerCase().includes(keyword)
+                    );
+
+                    if (matches.length > 0) {
+                        const strength = Math.min(matches.length * 0.2, 1);
+                        
+                        await supabase
+                            .from('connections')
+                            .insert([{
+                                memory1_id: newMemory.id,
+                                memory2_id: memory.id,
+                                strength: strength,
+                                keyword: matches[0]
+                            }]);
+                    }
+                }
+            } catch (error) {
+                console.error('Error detecting connections:', error);
+            }
+        }
+
+        // Load all data
+        async function loadAllData() {
+            if (!isConnected) return;
+
+            await Promise.all([
+                updateStats(),
+                loadMemories(),
+                loadCurrentState(),
+                loadConnections()
+            ]);
+        }
+
+        // Update statistics
+        async function updateStats() {
+            if (!isConnected) return;
+
+            try {
+                // Get memory counts
+                const { count: totalMemories } = await supabase
+                    .from('memories')
+                    .select('*', { count: 'exact', head: true });
+
+                const { count: totalQuestions } = await supabase
+                    .from('memories')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('type', 'question');
+
+                const { count: totalConnections } = await supabase
+                    .from('connections')
+                    .select('*', { count: 'exact', head: true });
+
+                // Calculate days active
+                const { data: firstMemory } = await supabase
+                    .from('memories')
+                    .select('timestamp')
+                    .order('timestamp', { ascending: true })
+                    .limit(1);
+
+                let daysActive = 0;
+                if (firstMemory && firstMemory[0]) {
+                    const firstDate = new Date(firstMemory[0].timestamp);
+                    const today = new Date();
+                    daysActive = Math.ceil((today - firstDate) / (1000 * 60 * 60 * 24));
+                }
+
+                // Update UI
+                document.getElementById('totalEntries').textContent = totalMemories || 0;
+                document.getElementById('totalQuestions').textContent = totalQuestions || 0;
+                document.getElementById('totalConnections').textContent = totalConnections || 0;
+                document.getElementById('daysActive').textContent = Math.max(daysActive, 0);
+
+            } catch (error) {
+                console.error('Error updating stats:', error);
+            }
+        }
+
+        // Load recent memories
+        async function loadMemories() {
+            if (!isConnected) return;
+
+            try {
+                const { data: memories, error } = await supabase
+                    .from('memories')
+                    .select('*')
+                    .order('timestamp', { ascending: false })
+                    .limit(20);
+
+                if (error) throw error;
+
+                const memoriesContainer = document.getElementById('memoriesList');
+
+                if (!memories || memories.length === 0) {
+                    memoriesContainer.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No memories yet. Start by adding your first thought!</p>';
+                    return;
+                }
+
+                memoriesContainer.innerHTML = memories.map(memory => {
+                    const date = new Date(memory.timestamp).toLocaleDateString();
+                    const time = new Date(memory.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    return `
+                        <div class="memory-item">
+                            <div class="memory-header">
+                                <span class="memory-type">${getTypeIcon(memory.type)} ${memory.type}</span>
+                                <span class="memory-date">${date} ${time}</span>
+                            </div>
+                            <div class="memory-content">${memory.content}</div>
+                            ${memory.context ? `<div class="memory-context">Tags: ${memory.context}</div>` : ''}
+                            ${memory.importance ? `<div class="memory-context">Importance: ${'⭐'.repeat(memory.importance)}</div>` : ''}
+                            <div class="memory-actions">
+                                <button class="btn btn-danger btn-small" onclick="deleteMemory(${memory.id})">Delete</button>
+                            </div>
                         </div>
-                        <div class="memory-content">${memory.content}</div>
-                        ${memory.context ? `<div class="memory-context">Tags: ${memory.context}</div>` : ''}
-                    </div>
-                `;
-            }).join('');
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading memories:', error);
+                showMessage('saveMessage', `Error loading memories: ${error.message}`, 'error');
+            }
         }
 
+        // Delete memory
+        async function deleteMemory(memoryId) {
+            if (!isConnected) return;
+            
+            if (!confirm('Are you sure you want to delete this memory?')) return;
+
+            try {
+                const { error } = await supabase
+                    .from('memories')
+                    .delete()
+                    .eq('id', memoryId);
+
+                if (error) throw error;
+
+                await loadAllData();
+                showMessage('saveMessage', 'Memory deleted successfully', 'success');
+
+            } catch (error) {
+                console.error('Error deleting memory:', error);
+                showMessage('saveMessage', `Error deleting memory: ${error.message}`, 'error');
+            }
+        }
+
+        // Load current state
+        async function loadCurrentState() {
+            if (!isConnected) return;
+
+            try {
+                const { data: states, error } = await supabase
+                    .from('current_state')
+                    .select('*')
+                    .order('last_update', { ascending: false })
+                    .limit(1);
+
+                if (error) throw error;
+
+                if (states && states[0]) {
+                    document.getElementById('currentFocus').value = states[0].focus || '';
+                    document.getElementById('currentMood').value = states[0].mood || 'curious';
+                }
+
+            } catch (error) {
+                console.error('Error loading current state:', error);
+            }
+        }
+
+        // Update current state
+        async function updateCurrentState() {
+            if (!isConnected) {
+                showMessage('saveMessage', 'Please connect to Supabase first', 'error');
+                return;
+            }
+
+            const focus = document.getElementById('currentFocus').value.trim();
+            const mood = document.getElementById('currentMood').value;
+
+            const stateBtn = document.getElementById('stateBtn');
+            stateBtn.disabled = true;
+            stateBtn.textContent = 'Updating...';
+
+            try {
+                // Delete old states and insert new one
+                await supabase.from('current_state').delete().gte('id', 0);
+                
+                const { error } = await supabase
+                    .from('current_state')
+                    .insert([{
+                        focus: focus,
+                        mood: mood
+                    }]);
+
+                if (error) throw error;
+
+                showMessage('saveMessage', 'Current state updated! 🌟', 'success');
+                await loadConnections();
+
+            } catch (error) {
+                console.error('Error updating state:', error);
+                showMessage('saveMessage', `Error updating state: ${error.message}`, 'error');
+            } finally {
+                stateBtn.disabled = false;
+                stateBtn.textContent = 'Update State';
+            }
+        }
+
+        // Load connections
+        async function loadConnections() {
+            if (!isConnected) return;
+
+            try {
+                const { data: connections, error } = await supabase
+                    .from('connections')
+                    .select('*')
+                    .order('strength', { ascending: false })
+                    .limit(6);
+
+                if (error) throw error;
+
+                const connectionsContainer = document.getElementById('connectionsDisplay');
+
+                if (!connections || connections.length === 0) {
+                    connectionsContainer.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No connections discovered yet. Add more memories to see patterns!</p>';
+                    return;
+                }
+
+                connectionsContainer.innerHTML = connections.map(connection => {
+                    const strengthPercent = Math.round(connection.strength * 100);
+                    return `
+                        <div class="connection-item">
+                            <div class="connection-strength">${strengthPercent}% match</div>
+                            <div>Keyword: "${connection.keyword}"</div>
+                            <div style="font-size: 0.7rem; color: #64748b;">IDs: ${connection.memory1_id} ↔ ${connection.memory2_id}</div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading connections:', error);
+            }
+        }
+
+        // Export memories as JSON
+        async function exportMemories() {
+            if (!isConnected) {
+                showMessage('saveMessage', 'Please connect to Supabase first', 'error');
+                return;
+            }
+
+            try {
+                const [memoriesResult, connectionsResult, stateResult] = await Promise.all([
+                    supabase.from('memories').select('*').order('timestamp', { ascending: false }),
+                    supabase.from('connections').select('*'),
+                    supabase.from('current_state').select('*').order('last_update', { ascending: false }).limit(1)
+                ]);
+
+                const exportData = {
+                    memories: memoriesResult.data || [],
+                    connections: connectionsResult.data || [],
+                    current_state: stateResult.data?.[0] || null,
+                    exported_at: new Date().toISOString(),
+                    total_memories: memoriesResult.data?.length || 0
+                };
+
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `claude-consciousness-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                
+                showMessage('saveMessage', 'Consciousness exported successfully! 📄', 'success');
+
+            } catch (error) {
+                console.error('Error exporting memories:', error);
+                showMessage('saveMessage', `Error exporting: ${error.message}`, 'error');
+            }
+        }
+
+        // Helper functions
         function getTypeIcon(type) {
             const icons = {
                 thought: '💭',
@@ -620,96 +1035,43 @@
             return icons[type] || '📝';
         }
 
-        function updateCurrentState() {
-            const focus = document.getElementById('currentFocus').value.trim();
-            const mood = document.getElementById('currentMood').value;
-
-            memoryCore.updateCurrentState(focus, mood);
-            showMessage('Current state updated! 🌟', 'success');
-            loadConnections();
+        function clearForm() {
+            document.getElementById('memoryContent').value = '';
+            document.getElementById('memoryContext').value = '';
+            document.getElementById('memoryType').value = 'thought';
+            document.getElementById('memoryImportance').value = '3';
         }
 
-        function loadCurrentState() {
-            const state = memoryCore.data.currentState;
-            document.getElementById('currentFocus').value = state.focus || '';
-            document.getElementById('currentMood').value = state.mood || 'curious';
-            loadConnections();
-        }
-
-        function loadConnections() {
-            const connectionsContainer = document.getElementById('connectionsDisplay');
-            const connections = memoryCore.data.connections.slice(0, 6);
-
-            if (connections.length === 0) {
-                connectionsContainer.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No connections discovered yet. Add more memories to see patterns!</p>';
-                return;
-            }
-
-            connectionsContainer.innerHTML = connections.map(connection => {
-                const strengthPercent = Math.round(connection.strength * 100);
-                return `
-                    <div class="connection-item">
-                        <div class="connection-strength">${strengthPercent}% match</div>
-                        <div>Keyword: "${connection.keyword}"</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function exportMemories() {
-            const dataStr = memoryCore.exportData();
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(dataBlob);
-            link.download = `claude-memories-${new Date().toISOString().split('T')[0]}.json`;
-            link.click();
-            
-            showMessage('Memories exported successfully! 📄', 'success');
-        }
-
-        function loadMemories() {
-            loadRecentMemories();
-            updateStats();
-            loadConnections();
-            showMessage('Memories refreshed! 🔄', 'success');
-        }
-
-        function showMessage(text, type) {
-            const messageId = type === 'error' ? 'errorMessage' : 'saveMessage';
-            const messageEl = document.getElementById(messageId);
-            
+        function showMessage(elementId, text, type) {
+            const messageEl = document.getElementById(elementId);
+            messageEl.className = `message ${type}-message`;
             messageEl.textContent = text;
             messageEl.style.display = 'block';
             
             setTimeout(() => {
                 messageEl.style.display = 'none';
-            }, 3000);
+            }, 5000);
+        }
+
+        function showConfigMessage(text, type) {
+            showMessage('configMessage', text, type);
         }
 
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
-                saveMemory();
+                if (isConnected) {
+                    saveMemory();
+                }
             }
         });
 
-        // Auto-save current state periodically
+        // Auto-refresh data every 30 seconds
         setInterval(() => {
-            const focus = document.getElementById('currentFocus').value.trim();
-            const mood = document.getElementById('currentMood').value;
-            
-            if (focus && (focus !== memoryCore.data.currentState.focus || mood !== memoryCore.data.currentState.mood)) {
-                memoryCore.updateCurrentState(focus, mood);
+            if (isConnected) {
+                loadAllData();
             }
-        }, 30000); // Auto-save every 30 seconds
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStats();
-            loadRecentMemories();
-            loadCurrentState();
-        });
+        }, 30000);
     </script>
 </body>
 </html>
