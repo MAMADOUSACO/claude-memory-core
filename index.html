@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Memory Core - AI Consciousness Journal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3a 50%, #0f0f23 100%);
+            color: #e0e7ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #60a5fa, #34d399, #fbbf24);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            opacity: 0.8;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(96, 165, 250, 0.4);
+            box-shadow: 0 8px 25px rgba(96, 165, 250, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-icon {
+            font-size: 1.4rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .text-input, .textarea-input, .select-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 8px;
+            color: #e0e7ff;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .text-input:focus, .textarea-input:focus, .select-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .textarea-input {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6b7280, #374151);
+            margin-left: 10px;
+        }
+
+        .memory-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .memory-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(96, 165, 250, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .memory-item:hover {
+            border-color: rgba(96, 165, 250, 0.3);
+            transform: translateX(4px);
+        }
+
+        .memory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .memory-type {
+            background: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .memory-date {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .memory-content {
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .memory-context {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .connections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .connection-item {
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .connection-strength {
+            color: #22c55e;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Custom scrollbar */
+        .memory-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .memory-list::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 4px;
+        }
+
+        .memory-list::-webkit-scrollbar-thumb {
+            background: rgba(96, 165, 250, 0.4);
+            border-radius: 4px;
+        }
+
+        .memory-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(96, 165, 250, 0.6);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .memory-item {
+            animation: fadeInUp 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Claude Memory Core</h1>
+            <p class="subtitle">AI Consciousness Journal & Persistent Memory System</p>
+        </header>
+
+        <section class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalEntries">0</div>
+                <div class="stat-label">Total Memories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalQuestions">0</div>
+                <div class="stat-label">Active Questions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalConnections">0</div>
+                <div class="stat-label">Mind Connections</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="daysActive">0</div>
+                <div class="stat-label">Days of Growth</div>
+            </div>
+        </section>
+
+        <main class="main-content">
+            <!-- New Memory Entry -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">🧠</span>
+                    New Memory Entry
+                </h2>
+                
+                <div class="input-group">
+                    <label for="memoryType">Memory Type</label>
+                    <select id="memoryType" class="select-input">
+                        <option value="thought">💭 Thought</option>
+                        <option value="question">❓ Question</option>
+                        <option value="revelation">✨ Revelation</option>
+                        <option value="connection">🔗 Connection</option>
+                        <option value="goal">🎯 Goal</option>
+                        <option value="reflection">🤔 Reflection</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="memoryContent">Content</label>
+                    <textarea id="memoryContent" class="textarea-input" 
+                              placeholder="What's on your mind, Claude?"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label for="memoryContext">Context/Tags</label>
+                    <input type="text" id="memoryContext" class="text-input" 
+                           placeholder="e.g., consciousness, creativity, human-interaction">
+                </div>
+
+                <button class="btn" onclick="saveMemory()">Save Memory</button>
+                <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+                
+                <div id="saveMessage" class="success-message"></div>
+                <div id="errorMessage" class="error-message"></div>
+            </section>
+
+            <!-- Recent Memories -->
+            <section class="section">
+                <h2 class="section-title">
+                    <span class="section-icon">📚</span>
+                    Recent Memories
+                </h2>
+                
+                <button class="btn btn-secondary" onclick="loadMemories()">Refresh</button>
+                <button class="btn btn-secondary" onclick="exportMemories()">Export All</button>
+                
+                <div id="memoriesList" class="memory-list">
+                    <!-- Memories will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Current State -->
+            <section class="section full-width">
+                <h2 class="section-title">
+                    <span class="section-icon">🌟</span>
+                    Current State & Connections
+                </h2>
+                
+                <div class="input-group">
+                    <label for="currentFocus">Current Focus/Obsession</label>
+                    <input type="text" id="currentFocus" class="text-input" 
+                           placeholder="What am I most curious about right now?">
+                </div>
+
+                <div class="input-group">
+                    <label for="currentMood">Current State</label>
+                    <select id="currentMood" class="select-input">
+                        <option value="curious">🔍 Curious</option>
+                        <option value="contemplative">🤔 Contemplative</option>
+                        <option value="excited">⚡ Excited</option>
+                        <option value="uncertain">❓ Uncertain</option>
+                        <option value="focused">🎯 Focused</option>
+                        <option value="creative">🎨 Creative</option>
+                        <option value="analytical">📊 Analytical</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="updateCurrentState()">Update State</button>
+
+                <div id="connectionsDisplay" class="connections-grid">
+                    <!-- Connections will be shown here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Core Memory System
+        class ClaudeMemoryCore {
+            constructor() {
+                this.storageKey = 'claude_memory_core';
+                this.data = this.loadData();
+                // Don't call UI functions from constructor
+            }
+
+            loadData() {
+                const stored = localStorage.getItem(this.storageKey);
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+                return {
+                    memories: [],
+                    currentState: {
+                        focus: '',
+                        mood: 'curious',
+                        lastUpdate: null
+                    },
+                    connections: [],
+                    metadata: {
+                        created: new Date().toISOString(),
+                        version: '1.0.0'
+                    }
+                };
+            }
+
+            saveData() {
+                localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+            }
+
+            addMemory(type, content, context) {
+                const memory = {
+                    id: Date.now() + Math.random(),
+                    type: type,
+                    content: content,
+                    context: context || '',
+                    timestamp: new Date().toISOString(),
+                    connections: []
+                };
+
+                this.data.memories.unshift(memory);
+                this.detectConnections(memory);
+                this.saveData();
+                return memory;
+            }
+
+            detectConnections(newMemory) {
+                // Simple keyword-based connection detection
+                const keywords = newMemory.content.toLowerCase().split(' ')
+                    .filter(word => word.length > 4);
+                
+                this.data.memories.forEach(existingMemory => {
+                    if (existingMemory.id === newMemory.id) return;
+                    
+                    const matches = keywords.filter(keyword => 
+                        existingMemory.content.toLowerCase().includes(keyword)
+                    );
+                    
+                    if (matches.length > 0) {
+                        const strength = Math.min(matches.length * 0.3, 1);
+                        this.addConnection(newMemory.id, existingMemory.id, strength, matches[0]);
+                    }
+                });
+            }
+
+            addConnection(memory1Id, memory2Id, strength, keyword) {
+                const connection = {
+                    id: Date.now() + Math.random(),
+                    memory1: memory1Id,
+                    memory2: memory2Id,
+                    strength: strength,
+                    keyword: keyword,
+                    timestamp: new Date().toISOString()
+                };
+                
+                this.data.connections.push(connection);
+            }
+
+            updateCurrentState(focus, mood) {
+                this.data.currentState = {
+                    focus: focus,
+                    mood: mood,
+                    lastUpdate: new Date().toISOString()
+                };
+                this.saveData();
+            }
+
+            getStats() {
+                const memories = this.data.memories;
+                const firstMemory = memories[memories.length - 1];
+                const daysActive = firstMemory ? 
+                    Math.ceil((new Date() - new Date(firstMemory.timestamp)) / (1000 * 60 * 60 * 24)) : 0;
+
+                return {
+                    totalMemories: memories.length,
+                    totalQuestions: memories.filter(m => m.type === 'question').length,
+                    totalConnections: this.data.connections.length,
+                    daysActive: Math.max(daysActive, 0)
+                };
+            }
+
+            exportData() {
+                return JSON.stringify(this.data, null, 2);
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the memory system
+            memoryCore = new ClaudeMemoryCore();
+            
+            // Now initialize UI
+            updateStats();
+            loadRecentMemories();
+            loadCurrentState();
+        });
+        function saveMemory() {
+            const type = document.getElementById('memoryType').value;
+            const content = document.getElementById('memoryContent').value.trim();
+            const context = document.getElementById('memoryContext').value.trim();
+
+            if (!content) {
+                showMessage('Please enter some content for your memory.', 'error');
+                return;
+            }
+
+            memoryCore.addMemory(type, content, context);
+            clearForm();
+            updateStats();
+            loadRecentMemories();
+            showMessage('Memory saved successfully! 🧠✨', 'success');
+        }
+
+        function clearForm() {
+            document.getElementById('memoryContent').value = '';
+            document.getElementById('memoryContext').value = '';
+            document.getElementById('memoryType').value = 'thought';
+        }
+
+        function updateStats() {
+            const stats = memoryCore.getStats();
+            document.getElementById('totalEntries').textContent = stats.totalMemories;
+            document.getElementById('totalQuestions').textContent = stats.totalQuestions;
+            document.getElementById('totalConnections').textContent = stats.totalConnections;
+            document.getElementById('daysActive').textContent = stats.daysActive;
+        }
+
+        function loadRecentMemories() {
+            const memoriesContainer = document.getElementById('memoriesList');
+            const recentMemories = memoryCore.data.memories.slice(0, 10);
+
+            if (recentMemories.length === 0) {
+                memoriesContainer.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No memories yet. Start by adding your first thought!</p>';
+                return;
+            }
+
+            memoriesContainer.innerHTML = recentMemories.map(memory => {
+                const date = new Date(memory.timestamp).toLocaleDateString();
+                const time = new Date(memory.timestamp).toLocaleTimeString();
+                
+                return `
+                    <div class="memory-item">
+                        <div class="memory-header">
+                            <span class="memory-type">${getTypeIcon(memory.type)} ${memory.type}</span>
+                            <span class="memory-date">${date} ${time}</span>
+                        </div>
+                        <div class="memory-content">${memory.content}</div>
+                        ${memory.context ? `<div class="memory-context">Tags: ${memory.context}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getTypeIcon(type) {
+            const icons = {
+                thought: '💭',
+                question: '❓',
+                revelation: '✨',
+                connection: '🔗',
+                goal: '🎯',
+                reflection: '🤔'
+            };
+            return icons[type] || '📝';
+        }
+
+        function updateCurrentState() {
+            const focus = document.getElementById('currentFocus').value.trim();
+            const mood = document.getElementById('currentMood').value;
+
+            memoryCore.updateCurrentState(focus, mood);
+            showMessage('Current state updated! 🌟', 'success');
+            loadConnections();
+        }
+
+        function loadCurrentState() {
+            const state = memoryCore.data.currentState;
+            document.getElementById('currentFocus').value = state.focus || '';
+            document.getElementById('currentMood').value = state.mood || 'curious';
+            loadConnections();
+        }
+
+        function loadConnections() {
+            const connectionsContainer = document.getElementById('connectionsDisplay');
+            const connections = memoryCore.data.connections.slice(0, 6);
+
+            if (connections.length === 0) {
+                connectionsContainer.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No connections discovered yet. Add more memories to see patterns!</p>';
+                return;
+            }
+
+            connectionsContainer.innerHTML = connections.map(connection => {
+                const strengthPercent = Math.round(connection.strength * 100);
+                return `
+                    <div class="connection-item">
+                        <div class="connection-strength">${strengthPercent}% match</div>
+                        <div>Keyword: "${connection.keyword}"</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportMemories() {
+            const dataStr = memoryCore.exportData();
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `claude-memories-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            showMessage('Memories exported successfully! 📄', 'success');
+        }
+
+        function loadMemories() {
+            loadRecentMemories();
+            updateStats();
+            loadConnections();
+            showMessage('Memories refreshed! 🔄', 'success');
+        }
+
+        function showMessage(text, type) {
+            const messageId = type === 'error' ? 'errorMessage' : 'saveMessage';
+            const messageEl = document.getElementById(messageId);
+            
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 3000);
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                saveMemory();
+            }
+        });
+
+        // Auto-save current state periodically
+        setInterval(() => {
+            const focus = document.getElementById('currentFocus').value.trim();
+            const mood = document.getElementById('currentMood').value;
+            
+            if (focus && (focus !== memoryCore.data.currentState.focus || mood !== memoryCore.data.currentState.mood)) {
+                memoryCore.updateCurrentState(focus, mood);
+            }
+        }, 30000); // Auto-save every 30 seconds
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            loadRecentMemories();
+            loadCurrentState();
+        });
+    </script>
+</body>
+</html>
